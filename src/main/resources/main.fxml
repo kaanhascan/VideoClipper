@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.videoTrimmer.controller.MainController"
+      styleClass="main-container">
+
+    <Label text="Last Clip Video Trimmer" styleClass="header-label"/>
+
+    <Label text="Videolar" styleClass="section-label"/>
+    <ListView fx:id="videoListView" styleClass="video-list"/>
+
+    <HBox spacing="10" styleClass="action-bar">
+        <Button text="+ Dosya" onAction="#handleAddFile" styleClass="action-button"/>
+        <Button text="+ Klasör" onAction="#handleAddFolder" styleClass="action-button"/>
+        <Region HBox.hgrow="ALWAYS" />
+        <Button text="Temizle" onAction="#handleClearList" styleClass="danger-button"/>
+    </HBox>
+
+    <Label text="Çıkış Klasörü" styleClass="section-label"/>
+    <HBox spacing="10">
+        <TextField fx:id="outputFolderField" text="D:\EditedVideos" editable="false" HBox.hgrow="ALWAYS" styleClass="input-field"/>
+        <Button text="Gözat" onAction="#handleBrowseOutput" styleClass="action-button"/>
+    </HBox>
+
+    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="duration-container">
+        <Label text="Son" styleClass="normal-text"/>
+        <TextField fx:id="durationField" text="30" prefWidth="50" styleClass="input-field, center-text"/>
+        <Label text="saniyesini bırak" styleClass="normal-text"/>
+    </HBox>
+
+    <VBox spacing="10" alignment="CENTER" styleClass="process-container">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <ProgressBar fx:id="progressBar" progress="0.0" HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="custom-progress-bar"/>
+            <Label fx:id="progressLabel" text="0/0 (0%)" styleClass="normal-text"/>
+        </HBox>
+        <Button fx:id="startButton" text="İŞLEME BAŞLA" onAction="#handleStartProcessing" styleClass="start-button"/>
+    </VBox>
+
+</VBox>

@@ -1,0 +1,135 @@
+/* Ana Arkaplan */
+.main-container {
+    -fx-background-color: #2b2d31;
+    -fx-padding: 25;
+    -fx-spacing: 15;
+    -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+/* Başlık */
+.header-label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-max-width: infinity;
+    -fx-padding: 0 0 10 0;
+}
+
+/* Alt Başlıklar */
+.section-label {
+    -fx-text-fill: #b5bac1;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* Normal Metinler */
+.normal-text {
+    -fx-text-fill: #dbdee1;
+    -fx-font-size: 14px;
+}
+
+/* Video Listesi (ListView) */
+.video-list {
+    -fx-background-color: #1e1f22;
+    -fx-control-inner-background: #1e1f22;
+    -fx-background-radius: 6;
+    -fx-border-color: #1e1f22;
+    -fx-border-radius: 6;
+    -fx-pref-height: 140px;
+}
+.video-list .list-cell {
+    -fx-text-fill: #dbdee1;
+    -fx-padding: 8 10;
+    -fx-font-size: 13px;
+}
+.video-list .list-cell:empty {
+    -fx-background-color: transparent;
+}
+.video-list .list-cell:filled:hover {
+    -fx-background-color: #35373c;
+    -fx-cursor: hand;
+}
+
+/* Standart Aksiyon Butonları */
+.action-button {
+    -fx-background-color: #4e5058;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 8 15;
+    -fx-background-radius: 4;
+}
+.action-button:hover {
+    -fx-background-color: #6d6f78;
+}
+
+/* Tehlike/Silme Butonu */
+.danger-button {
+    -fx-background-color: #da373c;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 8 15;
+    -fx-background-radius: 4;
+}
+.danger-button:hover {
+    -fx-background-color: #a1282b;
+}
+
+/* Ana Başlat Butonu */
+.start-button {
+    -fx-background-color: #5865f2;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 12 30;
+    -fx-background-radius: 4;
+    -fx-pref-width: 250px;
+}
+.start-button:hover {
+    -fx-background-color: #4752c4;
+}
+
+/* Girdi Alanları (TextField) */
+.input-field {
+    -fx-background-color: #1e1f22;
+    -fx-text-fill: #dbdee1;
+    -fx-border-color: transparent;
+    -fx-background-radius: 4;
+    -fx-padding: 8 10;
+    -fx-font-size: 13px;
+}
+.input-field:focused {
+    -fx-border-color: #5865f2;
+    -fx-border-radius: 4;
+}
+.center-text {
+    -fx-alignment: center;
+}
+
+/* Konteyner Boşlukları */
+.duration-container {
+    -fx-padding: 5 0;
+}
+.process-container {
+    -fx-padding: 15 0 0 0;
+}
+
+/* Progress Bar */
+.custom-progress-bar {
+    -fx-accent: #5865f2;
+    -fx-control-inner-background: #1e1f22;
+    -fx-pref-height: 14px;
+}
+.custom-progress-bar > .track {
+    -fx-background-color: #1e1f22;
+    -fx-background-radius: 6;
+}
+.custom-progress-bar > .bar {
+    -fx-background-color: #5865f2;
+    -fx-background-radius: 6;
+}
