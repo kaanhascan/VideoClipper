@@ -43,7 +43,7 @@ build/
 ffmpeg/
 
 # jpackage ile oluşan nihai .exe klasörü
-MMATrimmer/
+MMATrimmer*/
 LastClipTrimmer/
 
 # IntelliJ IDEA ayar dosyaları
