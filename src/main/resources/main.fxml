@@ -26,6 +26,12 @@
         <Button text="Gözat" onAction="#handleBrowseOutput" styleClass="action-button"/>
     </HBox>
 
+    <Label text="Dosya Adı Ayarı" styleClass="section-label"/>
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <CheckBox fx:id="defaultNameCheckBox" text="Varsayılan İsim Kullan (_kesilmiş)" selected="true" onAction="#handleDefaultNameToggle" styleClass="normal-text"/>
+        <TextField fx:id="customNameField" promptText="Özel dosya adı girin..." disable="true" HBox.hgrow="ALWAYS" styleClass="input-field"/>
+    </HBox>
+
     <HBox spacing="10" alignment="CENTER_LEFT" styleClass="duration-container">
         <Label text="Son" styleClass="normal-text"/>
         <TextField fx:id="durationField" text="30" prefWidth="50" styleClass="input-field, center-text"/>

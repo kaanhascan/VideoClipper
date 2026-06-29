@@ -25,6 +25,8 @@ public class MainController {
     @FXML private ProgressBar progressBar;
     @FXML private Label progressLabel;
     @FXML private Button startButton;
+    @FXML private CheckBox defaultNameCheckBox;
+    @FXML private TextField customNameField;
 
     private final ObservableList<Video> videoList = FXCollections.observableArrayList();
     private final VideoProcessingService videoService = new VideoProcessingService();
@@ -165,15 +167,36 @@ public class MainController {
                 for (int i = 0; i < totalVideos; i++) {
                     Video video = videoList.get(i);
 
+                    String finalFileName;
+                    String originalName = video.getFile().getName();
+                    String nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
+
+                    if (defaultNameCheckBox.isSelected() || customNameField.getText().trim().isEmpty()) {
+                        finalFileName = nameWithoutExt + "_kesilmiş";
+                    } else {
+                        String userCustomName = customNameField.getText().trim();
+                        if (totalVideos == 1) {
+                            finalFileName = userCustomName;
+                        } else {
+
+                            finalFileName = userCustomName + "_" + (i + 1);
+                        }
+                    }
+
 
                     Platform.runLater(() -> {
-                        video.setStatus("İşleniyor...");
+                        video.setStatus("İşleniyor (%0)");
                         videoListView.refresh();
                     });
 
                     try {
 
-                        videoService.trimVideo(video.getFile(), outputDir, finalSecondsToKeep);
+                        videoService.trimVideo(video.getFile(), outputDir, finalFileName, finalSecondsToKeep, pct -> {
+                            Platform.runLater(() -> {
+                                video.setStatus(String.format("İşleniyor (%%%d)", (int) pct));
+                                videoListView.refresh();
+                            });
+                        });
 
                         Platform.runLater(() -> {
                             video.setStatus("Tamamlandı");
@@ -191,7 +214,6 @@ public class MainController {
                     double currentProgress = (double) completedCount / totalVideos;
                     int percentage = (int) (currentProgress * 100);
 
-
                     Platform.runLater(() -> {
                         progressBar.setProgress(currentProgress);
                         progressLabel.setText(completedCount + "/" + totalVideos + " (" + percentage + "%)");
@@ -202,6 +224,8 @@ public class MainController {
         };
 
 
+
+
         processTask.setOnSucceeded(event -> startButton.setDisable(false));
         processTask.setOnFailed(event -> startButton.setDisable(false));
 
@@ -209,5 +233,13 @@ public class MainController {
         Thread thread = new Thread(processTask);
         thread.setDaemon(true);
         thread.start();
+    }
+
+    @FXML
+    private void handleDefaultNameToggle() {
+        customNameField.setDisable(defaultNameCheckBox.isSelected());
+        if (defaultNameCheckBox.isSelected()) {
+            customNameField.clear();
+        }
     }
 }

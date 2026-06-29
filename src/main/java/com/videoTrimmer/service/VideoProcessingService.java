@@ -2,6 +2,7 @@ package com.videoTrimmer.service;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class VideoProcessingService {
@@ -9,12 +10,16 @@ public class VideoProcessingService {
     private final String ffmpegPath;
     private final String ffprobePath;
 
+
+    public interface ProgressListener {
+        void onProgress(double percentage);
+    }
+
     public VideoProcessingService() {
         String basePath = System.getProperty("user.dir");
         this.ffmpegPath = basePath + File.separator + "ffmpeg" + File.separator + "ffmpeg.exe";
         this.ffprobePath = basePath + File.separator + "ffmpeg" + File.separator + "ffprobe.exe";
     }
-
 
     public boolean checkDependencies() {
         File ffmpeg = new File(ffmpegPath);
@@ -24,55 +29,38 @@ public class VideoProcessingService {
 
     public double getVideoDuration(File videoFile) throws Exception {
         ProcessBuilder pb = new ProcessBuilder(
-                ffprobePath,
-                "-v", "error",
-                "-show_entries", "format=duration",
-                "-of", "default=noprint_wrappers=1:nokey=1",
-                videoFile.getAbsolutePath()
+                ffprobePath, "-v", "error", "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1", videoFile.getAbsolutePath()
         );
-
-
         Process process = pb.start();
-
-
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = reader.readLine();
-
-
         process.waitFor();
 
         if (line != null && !line.trim().isEmpty()) {
-            return Double.parseDouble(line.trim()); // String olarak gelen süreyi ondalıklı sayıya çevir
+            return Double.parseDouble(line.trim());
         } else {
-            throw new Exception("Süre okunamadı, dosya bozuk veya desteklenmiyor olabilir.");
+            throw new Exception("Süre okunamadı.");
         }
     }
 
 
-    public String getFfmpegPath() {
-        return ffmpegPath;
-    }
-
-    public void trimVideo(File inputFile, File outputFolder, int secondsToKeep) throws Exception {
-
+    public void trimVideo(File inputFile, File outputFolder, String outputFileName, int secondsToKeep, ProgressListener listener) throws Exception {
         double totalDuration = getVideoDuration(inputFile);
         double startTime = totalDuration - secondsToKeep;
+        if (startTime < 0) startTime = 0;
 
-
-        if (startTime < 0) {
-            startTime = 0;
-        }
+        double targetDuration = totalDuration - startTime;
 
 
         String originalName = inputFile.getName();
-        String nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
         String ext = originalName.substring(originalName.lastIndexOf('.'));
-        File outputFile = new File(outputFolder, nameWithoutExt + "_kesilmiş" + ext);
 
+
+        File outputFile = new File(outputFolder, outputFileName + ext);
 
         ProcessBuilder pb = new ProcessBuilder(
-                ffmpegPath,
-                "-y",
+                ffmpegPath, "-y",
                 "-ss", String.format(java.util.Locale.US, "%.2f", startTime),
                 "-i", inputFile.getAbsolutePath(),
                 "-c", "copy",
@@ -80,14 +68,61 @@ public class VideoProcessingService {
         );
 
         Process process = pb.start();
+
+
+        InputStream errorStream = process.getErrorStream();
+        StringBuilder lineBuilder = new StringBuilder();
+        int ch;
+
+
+        while ((ch = errorStream.read()) != -1) {
+            if (ch == '\n' || ch == '\r') {
+                String line = lineBuilder.toString();
+                lineBuilder.setLength(0);
+
+                if (line.contains("time=")) {
+                    parseAndNotifyProgress(line, targetDuration, listener);
+                }
+            } else {
+                lineBuilder.append((char) ch);
+            }
+        }
+
         process.waitFor();
 
         if (process.exitValue() != 0) {
-            throw new Exception("FFmpeg kesme işlemi başarısız oldu. Hata Kodu: " + process.exitValue());
+            throw new Exception("FFmpeg hatası, kod: " + process.exitValue());
         }
     }
 
-    public String getFfprobePath() {
-        return ffprobePath;
+
+    private void parseAndNotifyProgress(String line, double targetDuration, ProgressListener listener) {
+        try {
+            int timeIndex = line.indexOf("time=");
+            if (timeIndex != -1) {
+
+                String timeStr = line.substring(timeIndex + 5).trim().split(" ")[0];
+
+
+                String[] parts = timeStr.split(":");
+                if (parts.length == 3) {
+                    double hours = Double.parseDouble(parts[0]);
+                    double minutes = Double.parseDouble(parts[1]);
+                    double seconds = Double.parseDouble(parts[2]);
+
+
+                    double currentSeconds = (hours * 3600) + (minutes * 60) + seconds;
+
+
+                    double percentage = (currentSeconds / targetDuration) * 100;
+                    if (percentage > 100) percentage = 100;
+
+                    if (listener != null) {
+                        listener.onProgress(percentage);
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
     }
 }
