@@ -21,8 +21,8 @@ public class Main extends Application {
 
         primaryStage.setTitle("MMA Special Video Trimmer");
         primaryStage.setScene(scene);
-        primaryStage.setMinWidth(700);
-        primaryStage.setMinHeight(500);
+        primaryStage.setMinWidth(1200);
+        primaryStage.setMinHeight(650);
         primaryStage.show();
     }
 

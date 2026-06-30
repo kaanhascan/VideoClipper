@@ -44,6 +44,19 @@ public class VideoProcessingService {
         }
     }
 
+    public void extractFrame(File inputFile, double timeInSeconds, File outputFile) throws Exception {
+        ProcessBuilder pb = new ProcessBuilder(
+                ffmpegPath, "-y",
+                "-ss", String.format(java.util.Locale.US, "%.2f", timeInSeconds),
+                "-i", inputFile.getAbsolutePath(),
+                "-vframes", "1",
+                "-q:v", "2",
+                outputFile.getAbsolutePath()
+        );
+        Process process = pb.start();
+        process.waitFor();
+    }
+
 
     public void trimVideo(File inputFile, File outputFolder, String outputFileName, int secondsToKeep, ProgressListener listener) throws Exception {
         double totalDuration = getVideoDuration(inputFile);
@@ -123,6 +136,68 @@ public class VideoProcessingService {
                 }
             }
         } catch (Exception ignored) {
+        }
+    }
+
+    public void mergeVideos(java.util.List<File> videoFiles, File outputFolder, String outputFileName, ProgressListener listener) throws Exception {
+        if (videoFiles == null || videoFiles.size() < 2) {
+            throw new Exception("Birleştirme için en az 2 video gereklidir.");
+        }
+
+
+        double totalDuration = 0;
+        for (File file : videoFiles) {
+            totalDuration += getVideoDuration(file);
+        }
+
+
+        File listFile = new File(outputFolder, "concat_list.txt");
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(listFile)) {
+            for (File file : videoFiles) {
+                String path = file.getAbsolutePath().replace("\\", "/");
+                writer.println("file '" + path + "'");
+            }
+        }
+
+
+        String originalName = videoFiles.get(0).getName();
+        String ext = originalName.substring(originalName.lastIndexOf('.'));
+        File outputFile = new File(outputFolder, outputFileName + ext);
+
+
+        ProcessBuilder pb = new ProcessBuilder(
+                ffmpegPath, "-y",
+                "-f", "concat",
+                "-safe", "0",
+                "-i", listFile.getAbsolutePath(),
+                "-c", "copy",
+                outputFile.getAbsolutePath()
+        );
+
+        Process process = pb.start();
+
+
+        InputStream errorStream = process.getErrorStream();
+        StringBuilder lineBuilder = new StringBuilder();
+        int ch;
+
+        while ((ch = errorStream.read()) != -1) {
+            if (ch == '\n' || ch == '\r') {
+                String line = lineBuilder.toString();
+                lineBuilder.setLength(0);
+                if (line.contains("time=")) {
+                    parseAndNotifyProgress(line, totalDuration, listener);
+                }
+            } else {
+                lineBuilder.append((char) ch);
+            }
+        }
+
+        process.waitFor();
+        listFile.delete();
+
+        if (process.exitValue() != 0) {
+            throw new Exception("FFmpeg birleştirme hatası, kod: " + process.exitValue());
         }
     }
 }

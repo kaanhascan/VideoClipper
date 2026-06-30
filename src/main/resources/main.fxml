@@ -1,49 +1,99 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.collections.FXCollections?>
-<?import java.lang.String?>
+<?import javafx.scene.media.MediaView?>
 
-<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+<HBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.videoTrimmer.controller.MainController"
-      styleClass="main-container">
+      styleClass="main-container" spacing="20">
 
-    <Label text="Last Clip Video Trimmer" styleClass="header-label"/>
+    <VBox spacing="15" prefWidth="420" minWidth="420">
+        <Label text="MMATrimmer Pro" styleClass="header-label"/>
 
-    <Label text="Videolar" styleClass="section-label"/>
-    <ListView fx:id="videoListView" styleClass="video-list"/>
-
-    <HBox spacing="10" styleClass="action-bar">
-        <Button text="+ Dosya" onAction="#handleAddFile" styleClass="action-button"/>
-        <Button text="+ Klasör" onAction="#handleAddFolder" styleClass="action-button"/>
-        <Region HBox.hgrow="ALWAYS" />
-        <Button text="Temizle" onAction="#handleClearList" styleClass="danger-button"/>
-    </HBox>
-
-    <Label text="Çıkış Klasörü" styleClass="section-label"/>
-    <HBox spacing="10">
-        <TextField fx:id="outputFolderField" text="D:\EditedVideos" editable="false" HBox.hgrow="ALWAYS" styleClass="input-field"/>
-        <Button text="Gözat" onAction="#handleBrowseOutput" styleClass="action-button"/>
-    </HBox>
-
-    <Label text="Dosya Adı Ayarı" styleClass="section-label"/>
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <CheckBox fx:id="defaultNameCheckBox" text="Varsayılan İsim Kullan (_kesilmiş)" selected="true" onAction="#handleDefaultNameToggle" styleClass="normal-text"/>
-        <TextField fx:id="customNameField" promptText="Özel dosya adı girin..." disable="true" HBox.hgrow="ALWAYS" styleClass="input-field"/>
-    </HBox>
-
-    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="duration-container">
-        <Label text="Son" styleClass="normal-text"/>
-        <TextField fx:id="durationField" text="30" prefWidth="50" styleClass="input-field, center-text"/>
-        <Label text="saniyesini bırak" styleClass="normal-text"/>
-    </HBox>
-
-    <VBox spacing="10" alignment="CENTER" styleClass="process-container">
         <HBox spacing="10" alignment="CENTER_LEFT">
-            <ProgressBar fx:id="progressBar" progress="0.0" HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="custom-progress-bar"/>
-            <Label fx:id="progressLabel" text="0/0 (0%)" styleClass="normal-text"/>
+            <Label text="Videolar" styleClass="section-label"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <CheckBox fx:id="selectAllCheckBox" text="Tümünü Seç" styleClass="normal-text" onAction="#handleSelectAll"/>
         </HBox>
-        <Button fx:id="startButton" text="İŞLEME BAŞLA" onAction="#handleStartProcessing" styleClass="start-button"/>
+        <ListView fx:id="videoListView" styleClass="video-list" VBox.vgrow="ALWAYS"/>
+
+        <HBox spacing="10">
+            <Button text="+ Dosya" onAction="#handleAddFile" styleClass="action-button"/>
+            <Button text="+ Klasör" onAction="#handleAddFolder" styleClass="action-button"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button text="Seçili Videoları Temizle" onAction="#handleClearList" styleClass="danger-button"/>
+        </HBox>
+
+        <Label text="Çıkış Klasörü" styleClass="section-label"/>
+        <HBox spacing="10">
+            <TextField fx:id="outputFolderField" text="D:\EditedVideos" editable="false" HBox.hgrow="ALWAYS" styleClass="input-field"/>
+            <Button text="Gözat" onAction="#handleBrowseOutput" styleClass="action-button"/>
+        </HBox>
+
+        <Label text="Dosya Adı Ayarı" styleClass="section-label"/>
+        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="duration-container">
+            <CheckBox fx:id="defaultNameCheckBox" text="Varsayılan" selected="true" onAction="#handleDefaultNameToggle" styleClass="normal-text"/>
+            <TextField fx:id="customNameField" promptText="Özel dosya adı..." disable="true" HBox.hgrow="ALWAYS" styleClass="input-field"/>
+        </HBox>
+
+        <HBox spacing="10" alignment="CENTER" styleClass="duration-container">
+            <Label text="Son" styleClass="normal-text"/>
+            <TextField fx:id="durationField" text="30" prefWidth="60" styleClass="input-field, center-text"/>
+            <Label text="saniyesini bırak" styleClass="normal-text"/>
+        </HBox>
+
+        <VBox spacing="12" alignment="CENTER" styleClass="process-container">
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <ProgressBar fx:id="progressBar" progress="0.0" HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="custom-progress-bar" prefHeight="8"/>
+                <Label fx:id="progressLabel" text="0/0 (0%)" styleClass="normal-text" style="-fx-font-weight: bold;"/>
+            </HBox>
+            <HBox spacing="10">
+                <Button fx:id="startButton" text="✂️ VİDEOLARI KES" onAction="#handleStartProcessing" styleClass="start-button" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button fx:id="mergeButton" text="🔗 TÜMÜNÜ BİRLEŞTİR" onAction="#handleMergeVideos" styleClass="start-button" style="-fx-background-color: linear-gradient(to right, #da373c, #b02a2e);" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            </HBox>
+        </VBox>
     </VBox>
 
-</VBox>
+    <VBox spacing="15" HBox.hgrow="ALWAYS" styleClass="preview-container" alignment="CENTER">
+        <Label text="Video Önizleme" styleClass="section-label" maxWidth="Infinity"/>
+
+        <StackPane style="-fx-background-color: #0b0b0c; -fx-background-radius: 8;" VBox.vgrow="ALWAYS">
+            <VBox fx:id="previewPlaceholder" alignment="CENTER" spacing="10">
+                <Label text="🎬" style="-fx-font-size: 56px; -fx-text-fill: #2b2d31;"/>
+                <Label text="Önizleme için listeden bir video seçin" styleClass="placeholder-text"/>
+            </VBox>
+
+            <MediaView fx:id="mediaView" fitWidth="640" fitHeight="360" preserveRatio="true" visible="false"/>
+        </StackPane>
+
+        <StackPane>
+            <VBox fx:id="timelinePlaceholder" alignment="CENTER" spacing="5" prefHeight="80">
+                <Label text="🎞️" style="-fx-font-size: 28px; -fx-text-fill: #2b2d31;"/>
+                <Label text="Zaman çizgisi ve detaylar burada görünecek" styleClass="placeholder-text"/>
+            </VBox>
+
+            <VBox fx:id="timelineContent" spacing="8" visible="false">
+                <ScrollPane fx:id="timelineScrollPane" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER"
+                            style="-fx-background-color: #111214; -fx-background: #111214; -fx-background-radius: 6; -fx-border-color: #2b2d31; -fx-border-radius: 6;"
+                            prefHeight="56" minHeight="56">
+                    <StackPane alignment="CENTER_LEFT">
+                        <HBox fx:id="thumbnailContainer" alignment="CENTER_LEFT" spacing="0" prefHeight="54"/>
+                        <Slider fx:id="timelineSlider" value="0.0" styleClass="timeline-slider"/>
+                    </StackPane>
+                </ScrollPane>
+
+                <HBox alignment="CENTER">
+                    <Label fx:id="currentTimeLabel" text="00:00" styleClass="normal-text" style="-fx-font-family: 'Courier New'; -fx-font-weight: bold;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="totalTimeLabel" text="00:00" styleClass="normal-text" style="-fx-font-family: 'Courier New'; -fx-text-fill: #949ba4;"/>
+                </HBox>
+            </VBox>
+        </StackPane>
+
+        <HBox spacing="15" alignment="CENTER">
+            <Button fx:id="playPauseButton" text="▶ Oynat" onAction="#handlePlayPause" styleClass="action-button" style="-fx-background-color: #23a55a; -fx-text-fill: white;" disable="true"/>
+            <Button fx:id="stopButton" text="⏹ Durdur" onAction="#handleStopVideo" styleClass="action-button" disable="true"/>
+        </HBox>
+    </VBox>
+
+</HBox>
