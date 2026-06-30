@@ -301,42 +301,65 @@ public class MainController {
 
     @FXML
     private void handleStartProcessing() {
+        // Sadece seçili (tikli) videoları filtrele
         List<Video> selectedVideos = videoList.stream().filter(Video::isSelected).toList();
         if (selectedVideos.isEmpty()) return;
 
-        handleStopVideo();
+        handleStopVideo(); // Çakışmayı önle
+
         File outputDir = new File(outputFolderField.getText());
         if (!outputDir.exists()) outputDir.mkdirs();
 
-        int secondsToKeep = Integer.parseInt(durationField.getText());
+        int secondsToKeep;
+        try {
+            secondsToKeep = Integer.parseInt(durationField.getText());
+        } catch (NumberFormatException e) {
+            secondsToKeep = 30; // Hatalı girişe karşı varsayılan
+            durationField.setText("30");
+        }
 
+        int totalVideos = selectedVideos.size();
+        final int finalSecondsToKeep = secondsToKeep;
+
+        // İŞLEM BAŞLARKEN ARAYÜZÜ KİLİTLE VE PROGRESS BAR'I HAZIRLA
         startButton.setDisable(true);
-        if(mergeButton != null) mergeButton.setDisable(true);
+        if (mergeButton != null) mergeButton.setDisable(true);
+        progressBar.setProgress(0.0);
+        progressLabel.setText("0/" + totalVideos + " (0%)");
 
         Task<Void> processTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                int totalVideos = selectedVideos.size();
                 List<Video> successfullyProcessed = new java.util.ArrayList<>();
 
                 for (int i = 0; i < totalVideos; i++) {
                     Video video = selectedVideos.get(i);
-                    String finalFileName = video.getFile().getName().replace(".mp4", "_kesilmiş"); // Örnek
+
+
+                    String finalFileName;
+                    String originalName = video.getFile().getName();
+                    String nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
+
+                    if (defaultNameCheckBox.isSelected() || customNameField.getText().trim().isEmpty()) {
+                        finalFileName = nameWithoutExt + "_kesilmiş";
+                    } else {
+                        String userCustomName = customNameField.getText().trim();
+                        finalFileName = (totalVideos == 1) ? userCustomName : userCustomName + "_" + (i + 1);
+                    }
 
                     Platform.runLater(() -> {
-                        video.setStatus("İşleniyor...");
+                        video.setStatus("İşleniyor (%0)");
                         videoListView.refresh();
                     });
 
                     try {
-                        videoService.trimVideo(video.getFile(), outputDir, finalFileName, secondsToKeep, pct -> {
+                        videoService.trimVideo(video.getFile(), outputDir, finalFileName, finalSecondsToKeep, pct -> {
                             Platform.runLater(() -> {
                                 video.setStatus(String.format("İşleniyor (%%%d)", (int) pct));
                                 videoListView.refresh();
                             });
                         });
 
-                        // İŞLEM BAŞARILIYSA SİLİNECEKLER LİSTESİNE EKLE
                         successfullyProcessed.add(video);
 
                     } catch (Exception e) {
@@ -345,21 +368,41 @@ public class MainController {
                             videoListView.refresh();
                         });
                     }
+
+
+                    int completedCount = i + 1;
+                    double currentProgress = (double) completedCount / totalVideos;
+                    int percentage = (int) (currentProgress * 100);
+
+                    Platform.runLater(() -> {
+                        progressBar.setProgress(currentProgress);
+                        progressLabel.setText(completedCount + "/" + totalVideos + " (" + percentage + "%)");
+                    });
                 }
 
-                // DÖNGÜ BİTİNCE BAŞARILI OLANLARI LİSTEDEN SİL
+
                 Platform.runLater(() -> {
                     videoList.removeAll(successfullyProcessed);
                     videoListView.refresh();
+
+                    if (videoList.isEmpty()) {
+                        setEmptyState(true);
+
+                        if (selectAllCheckBox != null) selectAllCheckBox.setSelected(false);
+                    }
                 });
 
                 return null;
             }
         };
 
+
         processTask.setOnSucceeded(e -> { startButton.setDisable(false); if(mergeButton != null) mergeButton.setDisable(false); });
         processTask.setOnFailed(e -> { startButton.setDisable(false); if(mergeButton != null) mergeButton.setDisable(false); });
-        new Thread(processTask).start();
+
+        Thread thread = new Thread(processTask);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void generateTimelineThumbnails(File videoFile, double totalSecs) {
